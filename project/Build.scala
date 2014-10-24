@@ -46,7 +46,7 @@ object SummingbirdBuild extends Build {
 
     libraryDependencies ++= Seq(
       "junit" % "junit" % "4.11" % "test",
-      "org.slf4j" % "slf4j-api" % slf4jVersion,
+      "org.slf4j" % "slf4j-api" % slf4jVersion force(),
       "org.scalacheck" %% "scalacheck" % "1.10.0" % "test",
       // These satisify's scaldings log4j needs when in test mode
       "log4j" % "log4j" % "1.2.16" % "test",
@@ -299,7 +299,9 @@ object SummingbirdBuild extends Build {
       "com.twitter" %% "chill-bijection" % chillVersion,
       "commons-lang" % "commons-lang" % "2.6",
       "com.twitter" %% "scalding-core" % scaldingVersion,
-      "com.twitter" %% "scalding-commons" % scaldingVersion
+      "com.twitter" %% "scalding-commons" % scaldingVersion,
+      "com.twitter" %% "storehaus-cascading" % storehausVersion,
+      "com.twitter" %% "storehaus-cassandra" % storehausVersion
     )
   ).dependsOn(
     summingbirdCore % "test->test;compile->compile",
