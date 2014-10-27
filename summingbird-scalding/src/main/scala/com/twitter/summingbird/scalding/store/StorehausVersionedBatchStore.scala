@@ -16,7 +16,6 @@ limitations under the License.
 
 package com.twitter.summingbird.scalding.store
 
-import scala.util.{ Try => ScalaTry }
 import cascading.flow.FlowDef
 import com.twitter.algebird.monad.Reader
 import com.twitter.storehaus.cascading.versioned.VersionedStorehausCascadingInitializer
