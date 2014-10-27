@@ -299,9 +299,9 @@ object SummingbirdBuild extends Build {
       "com.twitter" %% "chill-bijection" % chillVersion,
       "commons-lang" % "commons-lang" % "2.6",
       "com.twitter" %% "scalding-core" % scaldingVersion,
-      "com.twitter" %% "scalding-commons" % scaldingVersion,
+      "com.twitter" %% "scalding-commons" % scaldingVersion exclude("ch.qos.logback", "logback-core")  exclude("ch.qos.logback", "logback-classic"),
       "com.twitter" %% "storehaus-cascading" % storehausVersion,
-      "com.twitter" %% "storehaus-cassandra" % storehausVersion
+      "com.twitter" %% "storehaus-cassandra" % storehausVersion exclude("ch.qos.logback", "logback-core")  exclude("ch.qos.logback", "logback-classic")
     )
   ).dependsOn(
     summingbirdCore % "test->test;compile->compile",
