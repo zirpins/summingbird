@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory
 import com.twitter.storehaus.{ Store, IterableStore }
 import com.twitter.concurrent.Spool
 import com.twitter.util.Await
+import com.twitter.summingbird.batch.state.Versioning
 
 /**
  * We use a simple type of storehaus store for keeping version data.
@@ -56,7 +57,7 @@ class StorehausVersionTracking(factory: VersionStoreFactory[StorehausVersionStor
  *
  * Similar to {@link com.twitter.summingbird.batch.state.FileVersionTracking}
  */
-abstract class StorehausVersionTrackingBase[S <: IterableStore[Long, Boolean]] {
+abstract class StorehausVersionTrackingBase[S <: IterableStore[Long, Boolean]] extends Versioning {
 
   protected val logger = LoggerFactory.getLogger(classOf[StorehausVersionTrackingBase[S]])
 
@@ -78,14 +79,11 @@ abstract class StorehausVersionTrackingBase[S <: IterableStore[Long, Boolean]] {
       .sorted
       .reverse
 
-  def hasVersion(version: Long): Boolean = getValidVersions().contains(version)
+  override def getAllVersions = getValidVersions.toList
 
-  def mostRecentVersion: Option[Long] = getValidVersions.headOption
+  override def hasVersion(version: Long): Boolean = getValidVersions().contains(version)
 
-  // how to succeed with concretec store
-  def succeedVersion(version: Long): Unit
+  override def mostRecentVersion: Option[Long] = getValidVersions.headOption
 
-  // how to delete with concrete store
-  def deleteVersion(version: Long): Unit
 }
 
