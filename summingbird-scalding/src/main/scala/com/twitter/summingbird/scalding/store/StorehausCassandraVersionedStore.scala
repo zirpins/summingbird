@@ -16,14 +16,26 @@ limitations under the License.
 
 package com.twitter.summingbird.scalding.store
 
+import scala.util.{ Try => ScalaTry }
 import shapeless._
 import shapeless.TypeOperators._
 import shapeless.UnaryTCConstraint._
 import shapeless.Tuples._
+import com.datastax.driver.core.Row
+import com.websudos.phantom.CassandraPrimitive
 import com.twitter.scalding.commons.source.storehaus.cassandra.VersionedCassandraTupleStoreInitializer
 import com.twitter.summingbird.batch.{ BatchID, Batcher }
 
 object StorehausCassandraVersionedStore {
+
+  implicit object BatchIDIsCassandraPrimitive extends CassandraPrimitive[BatchID] {
+    val cassandraType = "bigint"
+    def cls: Class[_] = classOf[BatchID]
+    def fromRow(row: Row, name: String): Option[BatchID] = if (row.isNull(name)) None else ScalaTry(new BatchID(row.getLong(name))).toOption
+    override def toCType(v: BatchID): AnyRef = v.id.asInstanceOf[AnyRef]
+    override def fromCType(c: AnyRef): BatchID = new BatchID(c.asInstanceOf[Long])
+  }
+
   def apply[CKT0 <: Product, CKT0HL <: HList, RKT <: Product, CKT <: Product, CKTHL <: HList, ValueT, RK <: HList, CK <: HList, RS <: HList, CS <: HList, MRKResult <: HList, MCKResult <: HList](
     @transient storeInit: VersionedCassandraTupleStoreInitializer[RKT, CKT, ValueT, RK, CK, RS, CS, MRKResult, MCKResult],
     versionsToKeep: Int)(
@@ -41,6 +53,7 @@ object StorehausCassandraVersionedStore {
       { case (k, v) => ((k._1, k._2.hlisted.init.tupled), v) }) {
       override def select(b: List[BatchID]) = List(b.last)
     }
-
   }
+
 }
+
