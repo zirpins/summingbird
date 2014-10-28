@@ -31,18 +31,18 @@ private[summingbird] object FileVersionTracking {
   def path(basePath: String, fileName: String): Path = new Path(basePath, fileName)
 }
 
-private[summingbird] case class FileVersionTracking(root: String, fs: FileSystem) {
+private[summingbird] case class FileVersionTracking(root: String, fs: FileSystem) extends Versioning {
   import FileVersionTracking._
 
   fs.mkdirs(root)
 
-  def mostRecentVersion: Option[Long] = getAllVersions.headOption
+  override def mostRecentVersion: Option[Long] = getAllVersions.headOption
 
-  def failVersion(version: Long) = deleteVersion(version)
+  override def failVersion(version: Long) = deleteVersion(version)
 
-  def deleteVersion(version: Long) = fs.delete(tokenPath(version), false)
+  override def deleteVersion(version: Long) = fs.delete(tokenPath(version), false)
 
-  def succeedVersion(version: Long) = fs.createNewFile(tokenPath(version))
+  override def succeedVersion(version: Long) = fs.createNewFile(tokenPath(version))
 
   private def getOnDiskVersions: List[Try[Long]] =
     listDir(root)
@@ -52,7 +52,7 @@ private[summingbird] case class FileVersionTracking(root: String, fs: FileSystem
 
   private def logVersion(v: Try[Long]) = logger.debug("Version on disk : " + v.toString)
 
-  def getAllVersions: List[Long] =
+  override def getAllVersions: List[Long] =
     getOnDiskVersions
       .map { v =>
         logVersion(v)
@@ -62,7 +62,7 @@ private[summingbird] case class FileVersionTracking(root: String, fs: FileSystem
       .sorted
       .reverse
 
-  def hasVersion(version: Long) = getAllVersions.contains(version)
+  override def hasVersion(version: Long) = getAllVersions.contains(version)
 
   def tokenPath(version: Long): Path =
     path(root, version.toString + FINISHED_VERSION_SUFFIX)
