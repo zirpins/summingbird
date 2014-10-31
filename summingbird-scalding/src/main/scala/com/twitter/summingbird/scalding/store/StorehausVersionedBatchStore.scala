@@ -27,7 +27,8 @@ import com.twitter.summingbird.scalding.{ Try, FlowProducer, Scalding }
 /**
  * An extension of VersionedBatchStoreBase that is based on an underlying storehaus cascading versioned store.
  *
- * Store init is being statically defined and thus doesn't need to be serialized.
+ * The Initializer {@link com.twitter.storehaus.cascading.versioned.VersionedStorehausCascadingInitializer}  
+ * is being statically defined and thus doesn't need to be serialized.
  *
  */
 class StorehausVersionedBatchStore[K, V, K2, V2, I <: VersionedStorehausCascadingInitializer[K2, V2]](
