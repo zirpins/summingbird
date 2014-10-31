@@ -60,7 +60,7 @@ object StorehausCassandraVersionedStore {
    *
    */
   def apply[CKT0 <: Product, CKT0HL <: HList, RKT <: Product, CKT <: Product, CKTHL <: HList, ValueT, RK <: HList, CK <: HList, RS <: HList, CS <: HList, MRKResult <: HList, MCKResult <: HList](
-    @transient storeInit : VersionedCassandraTupleStoreInitializer[RKT, CKT, ValueT, RK, CK, RS, CS, MRKResult, MCKResult],
+    storeInit : VersionedCassandraTupleStoreInitializer[RKT, CKT, ValueT, RK, CK, RS, CS, MRKResult, MCKResult],
     versionsToKeep : Int)(
       implicit inBatcher : Batcher,
       ord : Ordering[(RKT, CKT0)],
@@ -84,8 +84,8 @@ object StorehausCassandraVersionedStore {
  *
  */
 class StorehausCassandraVersionedStore[CKT0 <: Product, CKT0HL <: HList, RKT <: Product, CKT <: Product, CKTHL <: HList, ValueT, RK <: HList, CK <: HList, RS <: HList, CS <: HList, MRKResult <: HList, MCKResult <: HList](
-  @transient val storeInit : VersionedCassandraTupleStoreInitializer[RKT, CKT, ValueT, RK, CK, RS, CS, MRKResult, MCKResult],
-  val versionsToKeep : Int)(
+  storeInit : VersionedCassandraTupleStoreInitializer[RKT, CKT, ValueT, RK, CK, RS, CS, MRKResult, MCKResult],
+  versionsToKeep : Int)(
     implicit inBatcher : Batcher,
     ord : Ordering[(RKT, CKT0)],
     @transient val scvsCEv1 : HListerAux[CKT0, CKT0HL],

@@ -32,7 +32,7 @@ import com.twitter.summingbird.scalding.{ Try, FlowProducer, Scalding }
  *
  */
 class StorehausVersionedBatchStore[K, V, K2, V2, I <: VersionedStorehausCascadingInitializer[K2, V2]](
-  @transient storeInit : I with ManagedVersionedStore,
+  @transient val storeInit : I with ManagedVersionedStore,
   val versionsToKeep : Int,
   override val batcher : Batcher)(
     pack : (BatchID, (K, V)) => (K2, V2))(
