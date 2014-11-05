@@ -42,7 +42,7 @@ abstract class VersioningCheckpointStore(startTime: Option[Timestamp], numBatche
       .orElse {
         val mostRecentB = getVersioning.mostRecentVersion
           .map(t => batcher.batchOf(Timestamp(t)).next)
-        logger.info("Most recent batch found on disk: " + mostRecentB.toString)
+        logger.info("Most recent batch not on disk: " + mostRecentB.toString)
         mostRecentB
       }.map(InclusiveLower(_)).getOrElse {
         sys.error {

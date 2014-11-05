@@ -46,10 +46,10 @@ object StorehausCassandraVersionedStore {
    */
   implicit object BatchIDAsCassandraPrimitive extends CassandraPrimitive[BatchID] {
     val cassandraType = "bigint"
-    def cls : Class[_] = classOf[BatchID]
-    def fromRow(row : Row, name : String) : Option[BatchID] = if (row.isNull(name)) None else ScalaTry(new BatchID(row.getLong(name))).toOption
-    override def toCType(v : BatchID) : AnyRef = v.id.asInstanceOf[AnyRef]
-    override def fromCType(c : AnyRef) : BatchID = new BatchID(c.asInstanceOf[Long])
+    def cls: Class[_] = classOf[BatchID]
+    def fromRow(row: Row, name: String): Option[BatchID] = if (row.isNull(name)) None else ScalaTry(new BatchID(row.getLong(name))).toOption
+    override def toCType(v: BatchID): AnyRef = v.id.asInstanceOf[AnyRef]
+    override def fromCType(c: AnyRef): BatchID = new BatchID(c.asInstanceOf[Long])
   }
 
   /**
@@ -60,19 +60,19 @@ object StorehausCassandraVersionedStore {
    *
    */
   def apply[CKT0 <: Product, CKT0HL <: HList, RKT <: Product, CKT <: Product, CKTHL <: HList, ValueT, RK <: HList, CK <: HList, RS <: HList, CS <: HList, MRKResult <: HList, MCKResult <: HList](
-    storeInit : VersionedCassandraTupleStoreInitializer[RKT, CKT, ValueT, RK, CK, RS, CS, MRKResult, MCKResult],
-    versionsToKeep : Int)(
-      implicit inBatcher : Batcher,
-      ord : Ordering[(RKT, CKT0)],
-      @transient scvsOEv1 : HListerAux[CKT0, CKT0HL],
-      @transient scvsOEv2 : PrependAux[CKT0HL, BatchID :: HNil, CKTHL],
-      @transient scvsOEv3 : TuplerAux[CKTHL, CKT],
-      @transient scvsOEv4 : HListerAux[CKT, CKTHL],
-      @transient scvsOEv5 : InitAux[CKTHL, CKT0HL],
-      @transient scvsOEv6 : TuplerAux[CKT0HL, CKT0]) =
+    storeInit: VersionedCassandraTupleStoreInitializer[RKT, CKT, ValueT, RK, CK, RS, CS, MRKResult, MCKResult],
+    versionsToKeep: Int)(
+      implicit inBatcher: Batcher,
+      ord: Ordering[(RKT, CKT0)],
+      @transient scvsOEv1: HListerAux[CKT0, CKT0HL],
+      @transient scvsOEv2: PrependAux[CKT0HL, BatchID :: HNil, CKTHL],
+      @transient scvsOEv3: TuplerAux[CKTHL, CKT],
+      @transient scvsOEv4: HListerAux[CKT, CKTHL],
+      @transient scvsOEv5: InitAux[CKTHL, CKT0HL],
+      @transient scvsOEv6: TuplerAux[CKT0HL, CKT0]) =
     new StorehausVersionedBatchStore[(RKT, CKT0), Set[ValueT], (RKT, CKT), Set[ValueT], VersionedCassandraTupleStoreInitializer[RKT, CKT, ValueT, RK, CK, RS, CS, MRKResult, MCKResult]](
       storeInit, versionsToKeep, inBatcher)(
-      { case (batchID, (k, v)) => ((k._1, (k._2.hlisted :+ batchID.next).tupled), v) })(
+      { case (batchID, (k, v)) => ((k._1, (k._2.hlisted :+ batchID).tupled), v) })(
       { case (k, v) => ((k._1, k._2.hlisted.init.tupled), v) })
 }
 
@@ -84,19 +84,19 @@ object StorehausCassandraVersionedStore {
  *
  */
 class StorehausCassandraVersionedStore[CKT0 <: Product, CKT0HL <: HList, RKT <: Product, CKT <: Product, CKTHL <: HList, ValueT, RK <: HList, CK <: HList, RS <: HList, CS <: HList, MRKResult <: HList, MCKResult <: HList](
-  storeInit : VersionedCassandraTupleStoreInitializer[RKT, CKT, ValueT, RK, CK, RS, CS, MRKResult, MCKResult],
-  versionsToKeep : Int)(
-    implicit inBatcher : Batcher,
-    ord : Ordering[(RKT, CKT0)],
-    @transient val scvsCEv1 : HListerAux[CKT0, CKT0HL],
-    @transient val scvsCEv2 : PrependAux[CKT0HL, BatchID :: HNil, CKTHL],
-    @transient val scvsCEv3 : TuplerAux[CKTHL, CKT],
-    @transient val scvsCEv4 : HListerAux[CKT, CKTHL],
-    @transient val scvsCEv5 : InitAux[CKTHL, CKT0HL],
-    @transient val scvsCEv6 : TuplerAux[CKT0HL, CKT0])
-  extends StorehausVersionedBatchStore[(RKT, CKT0), Set[ValueT], (RKT, CKT), Set[ValueT], VersionedCassandraTupleStoreInitializer[RKT, CKT, ValueT, RK, CK, RS, CS, MRKResult, MCKResult]](
-    storeInit,
-    versionsToKeep,
-    inBatcher)(
-    { case (batchID, (k, v)) => ((k._1, (k._2.hlisted :+ batchID.next).tupled), v) })(
-    { case (k, v) => ((k._1, k._2.hlisted.init.tupled), v) }) 
+  storeInit: VersionedCassandraTupleStoreInitializer[RKT, CKT, ValueT, RK, CK, RS, CS, MRKResult, MCKResult],
+  versionsToKeep: Int)(
+    implicit inBatcher: Batcher,
+    ord: Ordering[(RKT, CKT0)],
+    @transient val scvsCEv1: HListerAux[CKT0, CKT0HL],
+    @transient val scvsCEv2: PrependAux[CKT0HL, BatchID :: HNil, CKTHL],
+    @transient val scvsCEv3: TuplerAux[CKTHL, CKT],
+    @transient val scvsCEv4: HListerAux[CKT, CKTHL],
+    @transient val scvsCEv5: InitAux[CKTHL, CKT0HL],
+    @transient val scvsCEv6: TuplerAux[CKT0HL, CKT0])
+    extends StorehausVersionedBatchStore[(RKT, CKT0), Set[ValueT], (RKT, CKT), Set[ValueT], VersionedCassandraTupleStoreInitializer[RKT, CKT, ValueT, RK, CK, RS, CS, MRKResult, MCKResult]](
+      storeInit,
+      versionsToKeep,
+      inBatcher)(
+      { case (batchID, (k, v)) => ((k._1, (k._2.hlisted :+ batchID).tupled), v) })(
+      { case (k, v) => ((k._1, k._2.hlisted.init.tupled), v) })

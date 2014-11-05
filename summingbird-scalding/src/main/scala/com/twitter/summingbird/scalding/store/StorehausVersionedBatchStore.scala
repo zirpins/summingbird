@@ -27,26 +27,32 @@ import com.twitter.summingbird.scalding.{ Try, FlowProducer, Scalding }
 /**
  * An extension of VersionedBatchStoreBase that is based on an underlying storehaus cascading versioned store.
  *
- * The Initializer {@link com.twitter.storehaus.cascading.versioned.VersionedStorehausCascadingInitializer}  
+ * The Initializer {@link com.twitter.storehaus.cascading.versioned.VersionedStorehausCascadingInitializer}
  * is being statically defined and thus doesn't need to be serialized.
  *
  */
 class StorehausVersionedBatchStore[K, V, K2, V2, I <: VersionedStorehausCascadingInitializer[K2, V2]](
-  @transient val storeInit : I with ManagedVersionedStore,
-  val versionsToKeep : Int,
-  override val batcher : Batcher)(
-    pack : (BatchID, (K, V)) => (K2, V2))(
-      unpack : ((K2, V2)) => (K, V))(
-        implicit override val ordering : Ordering[K]) extends VersionedBatchStoreBase[K, V]("root_path_unused") {
+    @transient val storeInit: I with ManagedVersionedStore,
+    val versionsToKeep: Int,
+    override val batcher: Batcher)(
+        pack: (BatchID, (K, V)) => (K2, V2))(
+            unpack: ((K2, V2)) => (K, V))(
+                implicit override val ordering: Ordering[K]) extends VersionedBatchStoreBase[K, V]("root_path_unused") {
 
   /**
    * Uses a VersionedStorehausCascadingInitializer to retrieve the latest existing version
    * living in the batched store and construct its batchID and corresponding FlowProducer from it.
    *
-   * The batchID is the EXCLUSIVE upper bound of the last batch.
+   * The batchID is the EXCLUSIVE upper bound of the query.
+   * We are looking for max(all batchIDs in store) < exclusiveUB
    */
-  override protected def lastBatch(exclusiveUB : BatchID, mode : HdfsMode) : Option[(BatchID, FlowProducer[TypedPipe[(K, V)]])] =
+  override protected def lastBatch(exclusiveUB: BatchID, mode: HdfsMode): Option[(BatchID, FlowProducer[TypedPipe[(K, V)]])] =
     storeInit.lastVersionBefore(batchIDToVersion(exclusiveUB)).map { ver => (versionToBatchID(ver), readVersion(ver)) }
+
+  /**
+   * Make sure not to keep more than versionsToKeep when we write out.
+   */
+  override def select(b: List[BatchID]): List[BatchID] = b.takeRight(versionsToKeep)
 
   /**
    * Writes packed results into a new version of the underlying versioned storehaus store
@@ -55,21 +61,29 @@ class StorehausVersionedBatchStore[K, V, K2, V2, I <: VersionedStorehausCascadin
    * The batchID is the INCLUSIVE upper bound of the result data. The version of this batch
    * in the underlying store corresponds to the EXCLUSIVE upper bound (batchID.next).
    *
-   * Note, that concrete pack functions need to increase the batchID as well!
+   * Note, that concrete pack functions will use batchIDs that are inclusive upper bounds
    */
-  override def writeLast(batchID : BatchID, lastVals : TypedPipe[(K, V)])(
-    implicit flowDef : FlowDef, mode : Mode) : Unit = {
+  override def writeLast(inclusiveUB: BatchID, lastVals: TypedPipe[(K, V)])(
+    implicit flowDef: FlowDef, mode: Mode): Unit = {
+
+    // create version corresponding to inclusiveUB.next = exclusiveUB
+    val batchVersion = batchIDToVersion(inclusiveUB)
+
     import Dsl._
-    lastVals.map(pack(batchID, _))
+
+    lastVals.map(pack(inclusiveUB, _))
       .toPipe((0, 1))
-      .write(new StorehausVersionedMappable[K2, V2, I](storeInit, batchIDToVersion(batchID.next)))
+      .write(new StorehausVersionedMappable[K2, V2, I](storehausInit = storeInit, version = batchVersion))
   }
 
   /**
    * Turns the underlying versioned storehaus store into a typed pipe that is being unpacked.
+   *
+   * Versions inside the store correspond to batchIDs that are their exclusive upper bounds.
+   * Thus, the batch id of a version v is batchOf(v).prev.
    */
-  override protected def readVersion(v : Long) : FlowProducer[TypedPipe[(K, V)]] = Reader {
-    (flowMode : (FlowDef, Mode)) =>
+  override protected def readVersion(v: Long): FlowProducer[TypedPipe[(K, V)]] = Reader {
+    (flowMode: (FlowDef, Mode)) =>
       TypedPipe.from(StorehausVersionedMappable[K2, V2, I](storeInit, version = v)).map(unpack)
   }
 
