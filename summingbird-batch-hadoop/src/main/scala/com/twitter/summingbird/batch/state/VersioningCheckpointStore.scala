@@ -27,17 +27,20 @@ import org.slf4j.LoggerFactory
 /**
  * Abstract parts of a CheckpointStore that is backed by a simple version store
  */
-abstract class VersioningCheckpointStore(startTime: Option[Timestamp], numBatches: Long)(implicit val batcher: Batcher)
-    extends CheckpointStore[Iterable[BatchID]] {
+abstract class VersioningCheckpointStore(startTime : Option[Timestamp], numBatches : Long)(implicit val batcher : Batcher)
+  extends CheckpointStore[Iterable[BatchID]] {
 
   private val logger = LoggerFactory.getLogger(classOf[VersioningCheckpointStore])
 
-  @transient def version(b: BatchID) = batcher.earliestTimeOf(b).milliSinceEpoch
+  @transient def version(b : BatchID) = batcher.earliestTimeOf(b).milliSinceEpoch
 
   // how to set up a concrete underlying version store
-  def getVersioning(): Versioning
+  def getVersioning() : Versioning
 
-  val startBatch: InclusiveLower[BatchID] =
+  // close the underlying persistence layer
+  def close() : Unit = { getVersioning.close }
+
+  val startBatch : InclusiveLower[BatchID] =
     startTime.map(batcher.batchOf(_))
       .orElse {
         val mostRecentB = getVersioning.mostRecentVersion
@@ -51,17 +54,17 @@ abstract class VersioningCheckpointStore(startTime: Option[Timestamp], numBatche
         }
       }
 
-  val endBatch: ExclusiveUpper[BatchID] = ExclusiveUpper(startBatch.lower + numBatches)
+  val endBatch : ExclusiveUpper[BatchID] = ExclusiveUpper(startBatch.lower + numBatches)
 
-  override def checkpointBatchStart(intersection: Intersection[InclusiveLower, ExclusiveUpper, Timestamp]): Iterable[BatchID] =
+  override def checkpointBatchStart(intersection : Intersection[InclusiveLower, ExclusiveUpper, Timestamp]) : Iterable[BatchID] =
     BatchID.toIterable(batcher.batchesCoveredBy(intersection))
 
-  override def checkpointSuccessfulRun(runningBatches: Iterable[BatchID]) =
+  override def checkpointSuccessfulRun(runningBatches : Iterable[BatchID]) =
     runningBatches.foreach { b => getVersioning.succeedVersion(version(b)) }
 
-  override def checkpointFailure(runningBatches: Iterable[BatchID], err: Throwable) =
+  override def checkpointFailure(runningBatches : Iterable[BatchID], err : Throwable) =
     runningBatches.foreach { b => getVersioning.deleteVersion(version(b)) }
 
-  override def checkpointPlanFailure(err: Throwable) = throw err
+  override def checkpointPlanFailure(err : Throwable) = throw err
 
 }
