@@ -38,12 +38,7 @@ object HDFSVersioningCheckpointState {
     HDFSVersioningCheckpointState(Config(path, conf, startTime, numBatches))
 
   def apply(config: Config)(implicit batcher: Batcher): VersioningCheckpointState =
-    new VersioningCheckpointState(new HDFSCheckpointStoreFactory(config))
-}
-
-class HDFSCheckpointStoreFactory(config: HDFSVersioningCheckpointState.Config)(implicit batcher: Batcher)
-    extends VersioningCheckpointStoreFactory {
-  def getVersioningCheckpointStore = new HDFSVersioningCheckpointStore(config)
+    new VersioningCheckpointState(new HDFSVersioningCheckpointStore(config))
 }
 
 class HDFSVersioningCheckpointStore(val config: HDFSVersioningCheckpointState.Config)(implicit batcher: Batcher)
@@ -52,5 +47,5 @@ class HDFSVersioningCheckpointStore(val config: HDFSVersioningCheckpointState.Co
   protected lazy val versionedStore =
     new FileVersionTracking(config.rootPath, FileSystem.get(config.conf))
 
-  def getVersioning(): Versioning = versionedStore //.asInstanceOf[Versioning]
+  def getVersioning(): Versioning = { versionedStore }
 }

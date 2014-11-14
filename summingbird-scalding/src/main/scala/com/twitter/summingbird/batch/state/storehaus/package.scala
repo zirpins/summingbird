@@ -19,13 +19,14 @@ package com.twitter.summingbird.batch.state
 import com.twitter.storehaus.IterableStore
 import com.twitter.storehaus.Store
 import com.twitter.storehaus.cassandra.cql.CASStore
+import com.twitter.util.Closable
 
 package object storehaus {
 
   // simple version store type
-  type StorehausVersionStoreT = Store[Long, Boolean] with IterableStore[Long, Boolean]
+  type StorehausVersionStoreT = Store[Long, Boolean] with IterableStore[Long, Boolean] with Closable
 
   // CAS (check and set) enabled version store type
-  type StorehausVersionStoreCasT = CASStore[Long, Long, Boolean] with IterableStore[Long, Boolean]
+  type StorehausVersionStoreCasT = CASStore[Long, Long, Boolean] with IterableStore[Long, Boolean] with Closable
 
 }

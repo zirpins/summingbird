@@ -25,12 +25,12 @@ trait Versioning {
    * basic version management interface
    */
 
-  def mostRecentVersion : Option[Long]
-  def succeedVersion(version : Long)
-  def deleteVersion(version : Long)
-  def failVersion(version : Long) = deleteVersion(version)
-  def getAllVersions : List[Long]
-  def hasVersion(version : Long) = getAllVersions.contains(version)
-  def close() : Unit = { ??? }
+  def mostRecentVersion: Option[Long]
+  def succeedVersion(version: Long)
+  def deleteVersion(version: Long)
+  def failVersion(version: Long) = deleteVersion(version)
+  def getAllVersions: List[Long]
+  def hasVersion(version: Long) = getAllVersions.contains(version)
+  def close(): Unit = { ??? }
 
 }
