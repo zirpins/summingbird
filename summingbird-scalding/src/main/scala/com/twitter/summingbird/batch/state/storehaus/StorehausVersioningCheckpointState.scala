@@ -16,13 +16,11 @@
 package com.twitter.summingbird.batch.state.storehaus
 
 import com.twitter.summingbird.batch.state.Versioning
-import com.twitter.summingbird.batch.state.VersioningCheckpointStoreFactory
 import com.twitter.summingbird.batch.state.VersioningCheckpointStore
 import com.twitter.summingbird.batch.state.VersioningCheckpointState
 import com.twitter.summingbird.batch.Batcher
 import com.twitter.summingbird.batch.Timestamp
 import com.twitter.summingbird.batch.state.VersioningCheckpointStore
-import com.twitter.summingbird.batch.state.VersioningCheckpointStoreFactory
 import com.twitter.summingbird.batch.state.Versioning
 import com.twitter.summingbird.batch.state.VersioningCheckpointState
 
@@ -40,13 +38,8 @@ object StorehausVersioningCheckpointState {
     StorehausVersioningCheckpointState(Config(init, startTime, numBatches))
 
   def apply(config: Config)(implicit batcher: Batcher): VersioningCheckpointState =
-    new VersioningCheckpointState(new StorehausCheckpointStoreFactory(config))
+    new VersioningCheckpointState(new StorehausVersioningCheckpointStore(config))
 
-}
-
-class StorehausCheckpointStoreFactory(config: StorehausVersioningCheckpointState.Config)(implicit batcher: Batcher)
-    extends VersioningCheckpointStoreFactory {
-  def getVersioningCheckpointStore = new StorehausVersioningCheckpointStore(config)
 }
 
 class StorehausVersioningCheckpointStore(val config: StorehausVersioningCheckpointState.Config)(implicit batcher: Batcher)

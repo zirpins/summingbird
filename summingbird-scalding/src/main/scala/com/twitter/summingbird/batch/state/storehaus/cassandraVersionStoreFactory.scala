@@ -36,6 +36,7 @@ abstract class CassandraVersionStoreFactoryBase[S](cf: StoreColumnFamily)
  */
 case class CassandraVersionStoreFactory(cf: StoreColumnFamily)
     extends CassandraVersionStoreFactoryBase[StorehausVersionStoreT](cf) {
-  override def makeStore = (new CQLCassandraStore[Long, Boolean](cf)).
-    asInstanceOf[StorehausVersionStoreT]
+  override def makeStore() = {
+    (new CQLCassandraStore[Long, Boolean](cf)).asInstanceOf[StorehausVersionStoreT]
+  }
 }

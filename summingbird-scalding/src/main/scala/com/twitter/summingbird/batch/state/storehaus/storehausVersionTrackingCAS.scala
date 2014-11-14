@@ -21,13 +21,15 @@ import org.slf4j.LoggerFactory
 import com.twitter.storehaus.IterableStore
 import com.twitter.storehaus.cassandra.cql.CASStore
 import com.twitter.storehaus.Store
+import com.twitter.util.Closable
 
 /**
  * Version tracking with some concurrency control based on a CASStore
  *
  * TODO: enable exception handling for unsuccessful CAS operations
  */
-class StorehausVersionTrackingCAS(factory: VersionStoreFactory[StorehausVersionStoreCasT]) extends StorehausVersionTrackingBase[StorehausVersionStoreCasT] {
+class StorehausVersionTrackingCAS(factory: VersionStoreFactory[StorehausVersionStoreCasT])
+    extends StorehausVersionTrackingBase[StorehausVersionStoreCasT] {
 
   private lazy val store: StorehausVersionStoreCasT = factory.makeStore
 

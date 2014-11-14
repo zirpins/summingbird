@@ -27,13 +27,14 @@ import com.twitter.summingbird.batch.state.Versioning
  * This factory allows to use any implementation of StorehausVersionStore.
  */
 trait VersionStoreFactory[S] {
-  def makeStore: S
+  def makeStore(): S
 }
 
 /**
  * Simple version tracking based on a basic storehaus Store
  */
-class StorehausVersionTracking(factory: VersionStoreFactory[StorehausVersionStoreT]) extends StorehausVersionTrackingBase[StorehausVersionStoreT] {
+class StorehausVersionTracking(factory: VersionStoreFactory[StorehausVersionStoreT])
+    extends StorehausVersionTrackingBase[StorehausVersionStoreT] {
 
   private lazy val store: StorehausVersionStoreT = factory.makeStore
 
