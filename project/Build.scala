@@ -302,11 +302,11 @@ object SummingbirdBuild extends Build {
     "com.twitter" % "chill-hadoop" % chillVersion,
     "com.twitter" %% "chill-bijection" % chillVersion,
     "commons-lang" % "commons-lang" % "2.6",
-    "com.twitter" %% "scalding-core" % scaldingVersion,
+    "com.twitter" %% "scalding-core" % scaldingVersion exclude("org.scalacheck", "scalacheck_2.10"),
     "com.twitter" %% "scalding-commons" % scaldingVersion exclude("ch.qos.logback", "logback-core")  exclude("ch.qos.logback", "logback-classic")
   )
 
-  val scaldingDeps210Extras = Seq(
+  def scaldingDeps210Extras = Seq(
     "com.twitter" %% "storehaus-cascading" % storehausVersion,
     "com.twitter" %% "storehaus-cassandra" % storehausVersion exclude("ch.qos.logback", "logback-core")  exclude("ch.qos.logback", "logback-classic"),
     real210Version("com.chuusai" %% "shapeless" % "2.0.0")
@@ -331,6 +331,7 @@ object SummingbirdBuild extends Build {
   )
 
   lazy val summingbirdScaldingTest = module("scalding-test").settings(
+    dependencyOverrides += "org.scalacheck" %% "scalacheck" % "1.10.0",
     libraryDependencies ++= Seq(
       "org.scalacheck" %% "scalacheck" % "1.10.0"
     )
@@ -338,7 +339,7 @@ object SummingbirdBuild extends Build {
     summingbirdCore % "test->test;compile->compile",
     summingbirdChill,
     summingbirdBatchHadoop,
-    summingbirdScalding
+    summingbirdScalding 
   )
 
   lazy val summingbirdBatchHadoop = module("batch-hadoop").settings(
