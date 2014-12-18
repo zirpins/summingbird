@@ -25,15 +25,14 @@ import com.twitter.summingbird.batch.{ BatchID, Batcher }
 import com.twitter.bijection.{ Bufferable, Codec, Injection }
 
 import shapeless._
-import shapeless.Tuples._
-//import shapeless.TypeOperators._
-//import shapeless.UnaryTCConstraint._
+import shapeless.ops.tuple._
+import syntax.std.tuple._
 
 import com.websudos.phantom.CassandraPrimitive
 import StorehausCassandraVersionedStore.BatchIDAsCassandraPrimitive
 
 /*
- * Two versions of implementing storehaus batch stores building on cassandra tupple stores.
+ * Two versions of implementing storehaus batch stores building on cassandra tuple stores.
  * 
  * Both suffer from (non critical) serialization problems due to neglected transient annotations.
  * 
@@ -59,21 +58,17 @@ object StorehausCassandraVersionedStore {
    * causes jobs to throw during flowDef serialization.
    *
    */
-  def apply[CKT0 <: Product, CKT0HL <: HList, RKT <: Product, CKT <: Product, CKTHL <: HList, ValueT, RK <: HList, CK <: HList, RS <: HList, CS <: HList, MRKResult <: HList, MCKResult <: HList](
+  def apply[CKT0 <: Product, RKT <: Product, CKT <: Product, ValueT, RK <: HList, CK <: HList, RS <: HList, CS <: HList, MRKResult <: HList, MCKResult <: HList](
     storeInit: VersionedCassandraTupleStoreInitializer[RKT, CKT, ValueT, RK, CK, RS, CS, MRKResult, MCKResult],
     versionsToKeep: Int)(
       implicit inBatcher: Batcher,
       ord: Ordering[(RKT, CKT0)],
-      @transient scvsOEv1: HListerAux[CKT0, CKT0HL],
-      @transient scvsOEv2: PrependAux[CKT0HL, BatchID :: HNil, CKTHL],
-      @transient scvsOEv3: TuplerAux[CKTHL, CKT],
-      @transient scvsOEv4: HListerAux[CKT, CKTHL],
-      @transient scvsOEv5: InitAux[CKTHL, CKT0HL],
-      @transient scvsOEv6: TuplerAux[CKT0HL, CKT0]) =
+      @transient scvsOEv2: Prepend.Aux[CKT0, Tuple1[BatchID], CKT],
+      @transient scvsOEv5: Init.Aux[CKT, CKT0]) =
     new StorehausVersionedBatchStore[(RKT, CKT0), Set[ValueT], (RKT, CKT), Set[ValueT], VersionedCassandraTupleStoreInitializer[RKT, CKT, ValueT, RK, CK, RS, CS, MRKResult, MCKResult]](
       storeInit, versionsToKeep, inBatcher)(
-      { case (batchID, (k, v)) => ((k._1, (k._2.hlisted :+ batchID).tupled), v) })(
-      { case (k, v) => ((k._1, k._2.hlisted.init.tupled), v) })
+      { case (batchID, (k, v)) => ((k._1, k._2 :+ batchID), v) })(
+      { case (k, v) => ((k._1, k._2.init), v) })
 }
 
 /**
@@ -83,20 +78,16 @@ object StorehausCassandraVersionedStore {
  * their transient annotation and throws during flowDef serialization.
  *
  */
-class StorehausCassandraVersionedStore[CKT0 <: Product, CKT0HL <: HList, RKT <: Product, CKT <: Product, CKTHL <: HList, ValueT, RK <: HList, CK <: HList, RS <: HList, CS <: HList, MRKResult <: HList, MCKResult <: HList](
+class StorehausCassandraVersionedStore[CKT0 <: Product, RKT <: Product, CKT <: Product, ValueT, RK <: HList, CK <: HList, RS <: HList, CS <: HList, MRKResult <: HList, MCKResult <: HList](
   storeInit: VersionedCassandraTupleStoreInitializer[RKT, CKT, ValueT, RK, CK, RS, CS, MRKResult, MCKResult],
   versionsToKeep: Int)(
     implicit inBatcher: Batcher,
     ord: Ordering[(RKT, CKT0)],
-    @transient val scvsCEv1: HListerAux[CKT0, CKT0HL],
-    @transient val scvsCEv2: PrependAux[CKT0HL, BatchID :: HNil, CKTHL],
-    @transient val scvsCEv3: TuplerAux[CKTHL, CKT],
-    @transient val scvsCEv4: HListerAux[CKT, CKTHL],
-    @transient val scvsCEv5: InitAux[CKTHL, CKT0HL],
-    @transient val scvsCEv6: TuplerAux[CKT0HL, CKT0])
+    @transient val scvsCEv2: Prepend.Aux[CKT0, Tuple1[BatchID], CKT],
+    @transient val scvsCEv5: Init.Aux[CKT, CKT0])
     extends StorehausVersionedBatchStore[(RKT, CKT0), Set[ValueT], (RKT, CKT), Set[ValueT], VersionedCassandraTupleStoreInitializer[RKT, CKT, ValueT, RK, CK, RS, CS, MRKResult, MCKResult]](
       storeInit,
       versionsToKeep,
       inBatcher)(
-      { case (batchID, (k, v)) => ((k._1, (k._2.hlisted :+ batchID).tupled), v) })(
-      { case (k, v) => ((k._1, k._2.hlisted.init.tupled), v) })
+      { case (batchID, (k, v)) => ((k._1, k._2 :+ batchID), v) })(
+      { case (k, v) => ((k._1, k._2.init), v) })

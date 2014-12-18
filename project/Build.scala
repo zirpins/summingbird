@@ -27,6 +27,11 @@ object SummingbirdBuild extends Build {
       case version if version startsWith "2.10" => true
   }
 
+  def real210Version(dep: ModuleID) = dep cross CrossVersion.binaryMapped {
+    case version if version startsWith "2.10" => "2.10.3"
+    case x => x
+  }
+
   val extraSettings = Project.defaultSettings ++ mimaDefaultSettings ++ scalariformSettings
 
   val sharedSettings = extraSettings ++ Seq(
@@ -286,23 +291,38 @@ object SummingbirdBuild extends Build {
     summingbirdStorm % "test->test;compile->compile"
   )
 
+  val scaldingDeps = Seq(
+    "com.backtype" % "dfs-datastores" % dfsDatastoresVersion,
+    "com.backtype" % "dfs-datastores-cascading" % dfsDatastoresVersion,
+    "com.twitter" %% "algebird-core" % algebirdVersion,
+    "com.twitter" %% "algebird-util" % algebirdVersion,
+    "com.twitter" %% "algebird-bijection" % algebirdVersion,
+    "com.twitter" %% "bijection-json" % bijectionVersion,
+    "com.twitter" %% "chill" % chillVersion,
+    "com.twitter" % "chill-hadoop" % chillVersion,
+    "com.twitter" %% "chill-bijection" % chillVersion,
+    "commons-lang" % "commons-lang" % "2.6",
+    "com.twitter" %% "scalding-core" % scaldingVersion exclude("org.scalacheck", "scalacheck_2.10"),
+    "com.twitter" %% "scalding-commons" % scaldingVersion exclude("ch.qos.logback", "logback-core")  exclude("ch.qos.logback", "logback-classic")
+  )
+
+  def scaldingDeps210Extras = Seq(
+    "com.twitter" %% "storehaus-cascading" % storehausVersion,
+    "com.twitter" %% "storehaus-cassandra" % storehausVersion exclude("ch.qos.logback", "logback-core")  exclude("ch.qos.logback", "logback-classic"),
+    real210Version("com.chuusai" %% "shapeless" % "2.0.0")
+  )
+
+  def buildScaldingDeps(scalaVersion: String) = if (!isScala210x(scalaVersion)) { scaldingDeps } else { scaldingDeps ++ scaldingDeps210Extras }
+
+  def buildScaldingExcludeFilter(scalaVersion: String) = if (isScala210x(scalaVersion)) {
+    HiddenFileFilter
+  } else {
+    HiddenFileFilter || "storehaus" || "Storehaus*.scala"
+  }
+
   lazy val summingbirdScalding = module("scalding").settings(
-    libraryDependencies ++= Seq(
-      "com.backtype" % "dfs-datastores" % dfsDatastoresVersion,
-      "com.backtype" % "dfs-datastores-cascading" % dfsDatastoresVersion,
-      "com.twitter" %% "algebird-core" % algebirdVersion,
-      "com.twitter" %% "algebird-util" % algebirdVersion,
-      "com.twitter" %% "algebird-bijection" % algebirdVersion,
-      "com.twitter" %% "bijection-json" % bijectionVersion,
-      "com.twitter" %% "chill" % chillVersion,
-      "com.twitter" % "chill-hadoop" % chillVersion,
-      "com.twitter" %% "chill-bijection" % chillVersion,
-      "commons-lang" % "commons-lang" % "2.6",
-      "com.twitter" %% "scalding-core" % scaldingVersion,
-      "com.twitter" %% "scalding-commons" % scaldingVersion exclude("ch.qos.logback", "logback-core")  exclude("ch.qos.logback", "logback-classic"),
-      "com.twitter" %% "storehaus-cascading" % storehausVersion,
-      "com.twitter" %% "storehaus-cassandra" % storehausVersion exclude("ch.qos.logback", "logback-core")  exclude("ch.qos.logback", "logback-classic")
-    )
+    libraryDependencies ++= buildScaldingDeps(scalaVersion.value),
+    excludeFilter in unmanagedSources := buildScaldingExcludeFilter(scalaVersion.value)
   ).dependsOn(
     summingbirdCore % "test->test;compile->compile",
     summingbirdChill,
@@ -311,6 +331,7 @@ object SummingbirdBuild extends Build {
   )
 
   lazy val summingbirdScaldingTest = module("scalding-test").settings(
+    dependencyOverrides += "org.scalacheck" %% "scalacheck" % "1.10.0",
     libraryDependencies ++= Seq(
       "org.scalacheck" %% "scalacheck" % "1.10.0"
     )
@@ -318,7 +339,7 @@ object SummingbirdBuild extends Build {
     summingbirdCore % "test->test;compile->compile",
     summingbirdChill,
     summingbirdBatchHadoop,
-    summingbirdScalding
+    summingbirdScalding 
   )
 
   lazy val summingbirdBatchHadoop = module("batch-hadoop").settings(
