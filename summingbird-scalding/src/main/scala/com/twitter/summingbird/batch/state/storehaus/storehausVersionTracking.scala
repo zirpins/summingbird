@@ -62,7 +62,7 @@ abstract class StorehausVersionTrackingBase[S <: IterableStore[Long, Boolean]] e
 
   protected val logger = LoggerFactory.getLogger(classOf[StorehausVersionTrackingBase[S]])
 
-  protected def logVersion(v: Long) = logger.info("Version in store : " + v.toString)
+  protected def logVersion(v: Long) = logger.trace("Version in store : " + v.toString)
 
   // get concrete store
   protected def getStore(): S
