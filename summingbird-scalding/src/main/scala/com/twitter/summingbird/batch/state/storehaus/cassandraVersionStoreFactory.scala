@@ -26,9 +26,10 @@ import com.websudos.phantom.CassandraPrimitive
  */
 abstract class CassandraVersionStoreFactoryBase[S](cf: StoreColumnFamily)
     extends VersionStoreFactory[S] {
+
   // initializer code creating the cassandra schema
-  CQLCassandraStore.createColumnFamilyWithToken[Long, Boolean, Long](
-    cf, Some(implicitly[CassandraPrimitive[Long]]))
+  createSchema()
+
 }
 
 /**
@@ -36,7 +37,11 @@ abstract class CassandraVersionStoreFactoryBase[S](cf: StoreColumnFamily)
  */
 case class CassandraVersionStoreFactory(cf: StoreColumnFamily)
     extends CassandraVersionStoreFactoryBase[StorehausVersionStoreT](cf) {
+
+  override def createSchema(): Unit = CQLCassandraStore.createColumnFamily[Long, Boolean](cf)
+
   override def makeStore() = {
     (new CQLCassandraStore[Long, Boolean](cf)).asInstanceOf[StorehausVersionStoreT]
   }
+
 }

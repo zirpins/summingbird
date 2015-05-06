@@ -28,6 +28,7 @@ import com.twitter.summingbird.batch.state.Versioning
  */
 trait VersionStoreFactory[S] {
   def makeStore(): S
+  def createSchema(): Unit
 }
 
 /**

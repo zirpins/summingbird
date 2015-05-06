@@ -27,6 +27,9 @@ import com.websudos.phantom.CassandraPrimitive
 case class CassandraVersionStoreFactoryCAS(cf: StoreColumnFamily)
     extends CassandraVersionStoreFactoryBase[StorehausVersionStoreCasT](cf) {
 
+  override def createSchema(): Unit = CQLCassandraStore.createColumnFamilyWithToken[Long, Boolean, Long](
+    cf, Some(implicitly[CassandraPrimitive[Long]]))
+
   override def makeStore: StorehausVersionStoreCasT = {
     (new CQLCassandraStore[Long, Boolean](cf)).getCASStore[Long]().asInstanceOf[StorehausVersionStoreCasT]
   }
