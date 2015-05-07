@@ -19,7 +19,7 @@ package com.twitter.summingbird.batch.state.storehaus
 import org.slf4j.LoggerFactory
 import com.twitter.storehaus.{ Store, IterableStore }
 import com.twitter.concurrent.Spool
-import com.twitter.util.Await
+import com.twitter.util.{ Await, Closable }
 import com.twitter.summingbird.batch.state.Versioning
 
 /**
@@ -59,7 +59,7 @@ class StorehausVersionTracking(factory: VersionStoreFactory[StorehausVersionStor
  *
  * Similar to {@link com.twitter.summingbird.batch.state.FileVersionTracking}
  */
-abstract class StorehausVersionTrackingBase[S <: IterableStore[Long, Boolean]] extends Versioning {
+abstract class StorehausVersionTrackingBase[S <: IterableStore[Long, Boolean] with Closable] extends Versioning {
 
   protected val logger = LoggerFactory.getLogger(classOf[StorehausVersionTrackingBase[S]])
 
@@ -86,6 +86,8 @@ abstract class StorehausVersionTrackingBase[S <: IterableStore[Long, Boolean]] e
   override def hasVersion(version: Long): Boolean = getValidVersions().contains(version)
 
   override def mostRecentVersion: Option[Long] = getValidVersions.headOption
+
+  override def close(): Unit = getStore close
 
 }
 
