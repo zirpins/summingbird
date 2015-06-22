@@ -19,7 +19,7 @@ package com.twitter.summingbird.batch.state.storehaus
 import org.slf4j.LoggerFactory
 import com.twitter.storehaus.{ Store, IterableStore }
 import com.twitter.concurrent.Spool
-import com.twitter.util.{ Await, Closable }
+import com.twitter.util.{ Await, Closable, Time, Duration }
 import com.twitter.summingbird.batch.state.Versioning
 
 /**
@@ -43,12 +43,12 @@ class StorehausVersionTracking(factory: VersionStoreFactory[StorehausVersionStor
 
   override def succeedVersion(version: Long): Unit = {
     logger.info("Validating version " + version.toString)
-    getStore().put((version, Some(true)))
+    Await.result(getStore().put((version, Some(true))))
   }
 
   override def deleteVersion(version: Long): Unit = {
     logger.info("Invalidating version " + version.toString)
-    getStore().put((version, Some(false)))
+    Await.result(getStore().put((version, Some(false))))
   }
 
 }
@@ -87,7 +87,7 @@ abstract class StorehausVersionTrackingBase[S <: IterableStore[Long, Boolean] wi
 
   override def mostRecentVersion: Option[Long] = getValidVersions.headOption
 
-  override def close(): Unit = getStore close
+  override def close(millis: Long): Unit = getStore close (Time.now + Duration.fromMilliseconds(millis))
 
 }
 

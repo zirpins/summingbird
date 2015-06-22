@@ -48,7 +48,7 @@ abstract class VersioningCheckpointStore(startTime: Option[Timestamp], numBatche
   def getVersioning(): Versioning
 
   // close the underlying persistence layer
-  def close(): Unit = { getVersioning.close }
+  def close(millis: Long): Unit = { getVersioning.close(millis) }
 
   val startBatch: InclusiveLower[BatchID] =
     startTime.map(batcher.batchOf(_))

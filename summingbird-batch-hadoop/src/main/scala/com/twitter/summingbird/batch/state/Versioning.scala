@@ -31,6 +31,6 @@ trait Versioning {
   def failVersion(version: Long) = deleteVersion(version)
   def getAllVersions: List[Long]
   def hasVersion(version: Long) = getAllVersions.contains(version)
-  def close(): Unit = new UnsupportedOperationException
+  def close(millis: Long): Unit = new UnsupportedOperationException
 
 }
